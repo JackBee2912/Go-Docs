@@ -1,37 +1,20 @@
 # Makefile for godocs project
 
-export $(shell sed 's/=.*//' local.env)
+BINARY_NAME=godocs
+INSTALL_PATH=/usr/local/bin
 
-# Makefile for Go project
-help:
-	@echo ""
-	@echo "📦 Available commands:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
-	@echo ""
+## Build the project binary
+build:
+	@echo "🚀 Building $(BINARY_NAME)..."
+	go build -o $(BINARY_NAME) .
 
-run: ## Run the application with raw local.env (JSON-safe)
-	go run main.go
+## Install the binary to /usr/local/bin
+install: build
+	@echo "📦 Installing $(BINARY_NAME) to $(INSTALL_PATH)..."
+	sudo cp $(BINARY_NAME) $(INSTALL_PATH)
+	@echo "✅ Installed successfully! Now you can run '$(BINARY_NAME) --help'"
 
-vendor: ## Get vendor
-	go mod vendor
-
-tidy: ## Clean up go.mod and go.sum
-	go mod tidy
-
-generate: ## Run go generate
-	go generate ./...
-
-unit: ## Run unit tests
-	go test ./... -cover -short
-
-integration: ## Run integration tests
-	go test ./test/integration/... -v
-
-cover: ## Run tests with coverage
-	go test ./... -coverprofile=reports/coverage.out
-	go tool cover -func=reports/coverage.out
-
-mock: ## Generate mocks
-	mockgen -source=repositories/entity/repository.go \
-			-destination=test/mocks/entity/repository.go \
-			-package=mocks
+## Clean build artifacts
+clean:
+	@echo "🧹 Cleaning up..."
+	rm -f $(BINARY_NAME)
