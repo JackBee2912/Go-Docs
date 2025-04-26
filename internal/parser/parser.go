@@ -1,41 +1,72 @@
-package parser
+package router
 
 import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"os"
-	"path/filepath"
 	"strings"
 )
 
-type FunctionInfo struct {
-	Name    string
-	Comment string
+type APIInfo struct {
+	Method       string
+	Path         string
+	AuthRequired bool
 }
 
-func ParseFunctionsFromDir(dir string) ([]FunctionInfo, error) {
-	var funcs []FunctionInfo
+func ParseRouterFile(filepath string) (map[string]APIInfo, error) {
+	apiMap := make(map[string]APIInfo)
 
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if filepath.Ext(path) == ".go" && !strings.HasSuffix(path, "_test.go") {
-			fs := token.NewFileSet()
-			node, err := parser.ParseFile(fs, path, nil, parser.ParseComments)
-			if err != nil {
-				return err
-			}
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, filepath, nil, parser.AllErrors)
+	if err != nil {
+		return nil, err
+	}
 
-			for _, f := range node.Decls {
-				if fn, ok := f.(*ast.FuncDecl); ok {
-					funcs = append(funcs, FunctionInfo{
-						Name:    fn.Name.Name,
-						Comment: fn.Doc.Text(),
-					})
+	ast.Inspect(node, func(n ast.Node) bool {
+		callExpr, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		selExpr, ok := callExpr.Fun.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+
+		if len(callExpr.Args) < 2 {
+			return true
+		}
+
+		method := selExpr.Sel.Name // GET, POST, DELETE
+		pathArg, _ := callExpr.Args[0].(*ast.BasicLit)
+		handlerArg, _ := callExpr.Args[1].(*ast.SelectorExpr)
+
+		if pathArg == nil || handlerArg == nil {
+			return true
+		}
+
+		path := strings.Trim(pathArg.Value, "\"")
+		handlerName := handlerArg.Sel.Name
+
+		authRequired := false
+		if len(callExpr.Args) > 2 {
+			for _, extraArg := range callExpr.Args[2:] {
+				if sel, ok := extraArg.(*ast.SelectorExpr); ok {
+					if sel.Sel.Name == "Authenticate" {
+						authRequired = true
+					}
 				}
 			}
 		}
-		return nil
+
+		apiMap[handlerName] = APIInfo{
+			Method:       method,
+			Path:         path,
+			AuthRequired: authRequired,
+		}
+
+		return true
 	})
 
-	return funcs, err
+	return apiMap, nil
 }
