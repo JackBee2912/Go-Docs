@@ -1,7 +1,7 @@
 package main
 
 import (
-	"godocs/cmd"
+	"github.com/JackBee2912/godocs/cmd"
 )
 
 func main() {

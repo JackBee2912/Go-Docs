@@ -1,4 +1,4 @@
-module godocs
+module github.com/JackBee2912/godocs
 
 go 1.23.2
 

@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"godocs/internal/gpt"
-	"godocs/internal/markdown"
-	"godocs/internal/parser"
+	"github.com/JackBee2912/godocs/internal/gpt"
+	"github.com/JackBee2912/godocs/internal/markdown"
+	"github.com/JackBee2912/godocs/internal/parser"
 	"log"
 	"path/filepath"
 	"strings"
