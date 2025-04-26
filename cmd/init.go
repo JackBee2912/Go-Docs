@@ -9,7 +9,6 @@ import (
 	"github.com/JackBee2912/godocs/internal/gpt"
 	"github.com/JackBee2912/godocs/internal/markdown"
 	"github.com/JackBee2912/godocs/internal/parser"
-	"github.com/JackBee2912/godocs/internal/router"
 
 	"github.com/spf13/cobra"
 )
@@ -24,18 +23,20 @@ var initCmd = &cobra.Command{
 	Use:   "i",
 	Short: "Initialize documentation generation",
 	Run: func(cmd *cobra.Command, args []string) {
-		if sourceRoot == "" || apiKey == "" || routerFile == "" {
-			log.Fatal("❌ Error: --sourceRoot, --apiKey and --routerFile must be provided.")
+		if sourceRoot == "" || apiKey == "" {
+			log.Fatal("❌ Error: --sourceRoot and --apiKey must be provided.")
 		}
 
-		// Parse router file
-		apiMappings, err := router.ParseRouterFile(routerFile)
+		// ✨ tự động lấy routerFile dựa trên sourceRoot
+		routerFile := filepath.Join(sourceRoot, routerFile)
+
+		apiMappings, err := parser.ParseRouterFile(routerFile)
 		if err != nil {
 			log.Fatalf("❌ Error parsing router file: %v", err)
 		}
 
 		subDirs := []string{
-			"api", // ✨ bạn sau chỉnh thành param cũng được
+			"api",
 		}
 
 		for _, subDir := range subDirs {
@@ -77,6 +78,8 @@ var initCmd = &cobra.Command{
 				if len(fn.ErrorCodes) > 0 {
 					contextBuilder.WriteString(fmt.Sprintf("Possible Error Codes: %v\n", fn.ErrorCodes))
 				}
+
+				fmt.Println(contextBuilder.String())
 
 				doc, err := gpt.GenerateMarkdownDocumentation(contextBuilder.String(), apiKey)
 				if err != nil {
