@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/JackBee2912/godocs/internal/gpt"
-	"github.com/JackBee2912/godocs/internal/markdown"
-	"github.com/JackBee2912/godocs/internal/parser"
 	"log"
 	"path/filepath"
 	"strings"
+
+	"github.com/JackBee2912/godocs/internal/gpt"
+	"github.com/JackBee2912/godocs/internal/markdown"
+	"github.com/JackBee2912/godocs/internal/parser"
 
 	"github.com/spf13/cobra"
 )
@@ -18,7 +19,7 @@ var (
 )
 
 var initCmd = &cobra.Command{
-	Use:   "init",
+	Use:   "i",
 	Short: "Initialize documentation generation",
 	Run: func(cmd *cobra.Command, args []string) {
 		if sourceRoot == "" || apiKey == "" {
