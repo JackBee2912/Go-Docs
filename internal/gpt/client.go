@@ -2,6 +2,7 @@ package gpt
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
